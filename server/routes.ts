@@ -1,8 +1,8 @@
 import type { Express } from "express";
 import type { Server } from "http";
 import multer from "multer";
-import { translateSign, generateSignPose } from "./gemini.js";
-import { setupLiveWebSocket } from "./liveSign.js";
+import { translateSign, generateSignPose } from "./gemini";
+import { setupLiveWebSocket } from "./liveSign";
 
 // Setup multer for memory storage
 const upload = multer({

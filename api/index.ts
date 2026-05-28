@@ -1,6 +1,2 @@
-import app, { appSetup } from "../server/index.js";
-
-export default async (req: any, res: any) => {
-    await appSetup;
-    return app(req, res);
-};
+import app from "../server/index";
+export default app;

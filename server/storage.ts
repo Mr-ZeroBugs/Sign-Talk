@@ -10,18 +10,18 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   async getUsers(): Promise<User[]> {
-    const { db } = await import("./db.js");
+    const { db } = await import("./db");
     return await db.select().from(users);
   }
 
   async getUser(id: string): Promise<User | undefined> {
-    const { db } = await import("./db.js");
+    const { db } = await import("./db");
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const { db } = await import("./db.js");
+    const { db } = await import("./db");
     const [user] = await db
       .select()
       .from(users)
