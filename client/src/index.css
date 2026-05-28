@@ -1,0 +1,198 @@
+@import url("https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 40 25% 98%;
+  /* Eggshell White #FCFBF7 */
+  --foreground: 222.2 47.4% 11.2%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 47.4% 11.2%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 47.4% 11.2%;
+
+  --primary: 222.2 47.4% 11.2%;
+  /* Slate Dark */
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+
+  --muted: 40 20% 94%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+
+  --accent: 40 25% 90%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 40 15% 90%;
+  --input: 40 15% 90%;
+  --ring: 222.2 47.4% 11.2%;
+
+  --radius: 2rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Sarabun', 'Inter', sans-serif;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-xl border border-white shadow-[0_20px_50px_-12px_rgba(0, 0, 0, 0.08)];
+  }
+
+  .premium-shadow {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  }
+
+  .aura-glow {
+    @apply relative;
+  }
+
+  .aura-glow::after {
+    content: "";
+    @apply absolute -inset-1 bg-gradient-to-r from-primary/20 to-accent/20 blur-xl opacity-0 transition-opacity duration-500 rounded-[inherit];
+  }
+
+  .aura-glow:hover::after {
+    @apply opacity-100;
+  }
+
+  .scan-line {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scan-line::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, hsl(var(--primary) / 0.5), transparent);
+    @apply animate-scan-line;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+    @apply font-semibold tracking-tight;
+  }
+}
+
+/* Atmospheric background: subtle grid + vignette + grain */
+@layer utilities {
+  .app-surface {
+    background:
+      radial-gradient(1200px 700px at 20% -10%, hsl(var(--primary) / 0.12), transparent 55%),
+      radial-gradient(900px 600px at 95% 10%, hsl(var(--accent) / 0.12), transparent 52%),
+      radial-gradient(900px 600px at 50% 115%, hsl(152 52% 40% / 0.08), transparent 50%),
+      linear-gradient(to bottom, hsl(var(--background)), hsl(var(--background)));
+  }
+
+  .paper {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .paper-crisp {
+    box-shadow: var(--shadow-crisp);
+  }
+
+  .hairline {
+    background: linear-gradient(to right,
+        transparent,
+        hsl(var(--border)),
+        transparent);
+  }
+
+  .grain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.08;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+    border-radius: inherit;
+  }
+
+  .enter {
+    animation: enter 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .enter-delayed {
+    animation: enter 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: 120ms;
+  }
+
+  @keyframes enter {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+      filter: blur(6px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+  }
+
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/15 focus-visible:border-ring;
+  }
+
+  .subtle-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  .subtle-scroll::-webkit-scrollbar {
+    height: 10px;
+    width: 10px;
+  }
+
+  .subtle-scroll::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+}

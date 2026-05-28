@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <meta name="apple-mobile-web-app-title" content="Smart Medic Dx">
+    <title>Smart Medic Diagnosis</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0056b3">
+
+    <!-- MediaPipe Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <!-- CSS & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            touch-action: manipulation;
+            user-select: none;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f9;
+            font-family: 'Sarabun', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            width: 100%;
+            background: linear-gradient(135deg, #0056b3, #004494);
+            color: white;
+            padding: 15px 20px;
+            padding-top: max(15px, env(safe-area-inset-top));
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title h1 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .mode-switch {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 4px;
+            display: flex;
+            gap: 5px;
+            margin-right: 5px;
+        }
+
+        .mode-btn {
+            background: none;
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .mode-btn.active {
+            background: white;
+            color: #0056b3;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .main-container {
+            position: relative;
+            width: 100%;
+            flex-grow: 1;
+            overflow: hidden;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- Patient View --- */
+        #patient-view {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #222;
+        }
+
+        video {
+            display: none;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .result-box {
+            position: absolute;
+            bottom: 30px;
+            width: 90%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-left: 10px solid #ccc;
+            z-index: 50;
+        }
+
+        #translation-text {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin: 0;
+            color: #333;
+        }
+
+        #helper-text {
+            font-size: 1rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        #debug-text {
+            font-size: 0.7rem;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        /* --- Doctor View --- */
+        #doctor-view {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            background: white;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            overflow-y: auto;
+        }
+
+        /* กรอบแสดง Video/Image */
+        #sign-media-container {
+            width: 100%;
+            max-width: 340px;
+            height: 260px;
+            background: #e9ecef;
+            border-radius: 15px;
+            margin: 0 auto 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border: 3px solid #0056b3;
+        }
+
+        #sign-image,
+        #sign-video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none;
+        }
+
+        #sign-placeholder {
+            font-size: 4rem;
+            color: #dee2e6;
+        }
+
+        #recognized-text {
+            font-size: 1.2rem;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 10px;
+            min-height: 1.5em;
+            text-align: center;
+        }
+
+        /* แผงคำถามด่วน (Quick Questions) */
+        .quick-questions {
+            width: 90%;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .quick-btn {
+            background: #f1f3f5;
+            border: 1px solid #ced4da;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #495057;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .quick-btn:active {
+            background: #e2e6ea;
+            transform: scale(0.95);
+        }
+
+        .quick-btn i {
+            color: #0056b3;
+        }
+
+        .input-area {
+            width: 90%;
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #doctorInput {
+            flex-grow: 1;
+            padding: 15px;
+            border-radius: 30px;
+            border: 2px solid #ddd;
+            font-size: 1rem;
+        }
+
+        #sendBtn {
+            background: #0056b3;
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+        }
+
+        #micBtn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0056b3, #004494);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0, 86, 179, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #micBtn.listening {
+            animation: pulse 1.5s infinite;
+            background: #dc3545;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 20px rgba(220, 53, 69, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+            }
+        }
+
+        #startAppBtn {
+            position: absolute;
+            z-index: 60;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            background: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1>SMART MEDIC</h1>
+            <p>โหมดวินิจฉัยโรค</p>
+        </div>
+        <div class="header-actions">
+            <div class="mode-switch">
+                <button class="mode-btn active" onclick="setMode('patient')" id="btn-patient"><i
+                        class="fas fa-user-injured"></i> ผู้ป่วย</button>
+                <button class="mode-btn" onclick="setMode('doctor')" id="btn-doctor"><i class="fas fa-user-md"></i>
+                    หมอ</button>
+            </div>
+            <button class="icon-btn" onclick="switchCamera()" id="btn-switch-cam"><i
+                    class="fas fa-sync-alt"></i></button>
+        </div>
+    </header>
+
+    <div class="main-container">
+
+        <!-- 🟢 1. หน้าจอผู้ป่วย: ตอบคำถามด้วยท่าทาง -->
+        <div id="patient-view">
+            <video id="input_video" playsinline webkit-playsinline></video>
+            <canvas id="output_canvas"></canvas>
+            <button id="startAppBtn" onclick="startCameraApp()">เริ่มกล้อง</button>
+            <div class="result-box">
+                <div id="translation-text">...</div>
+                <div id="helper-text">รอคำถามจากคุณหมอ</div>
+                <div id="debug-text">นิ้ว: - - - - -</div>
+            </div>
+        </div>
+
+        <!-- 🔵 2. หน้าจอหมอ: ถามอาการ -->
+        <div id="doctor-view">
+            <!-- จอแสดงภาษามือ -->
+            <div id="sign-media-container">
+                <i class="fas fa-user-nurse" id="sign-placeholder"></i>
+                <img id="sign-image" src="" alt="Sign Language">
+                <video id="sign-video" src="" playsinline webkit-playsinline muted loop></video>
+            </div>
+            <div id="recognized-text">...</div>
+
+            <!-- ปุ่มคำถามด่วน (Quick Questions) -->
+            <div class="quick-questions">
+                <button class="quick-btn" onclick="processSentence('เจ็บตรงไหน')"><i class="fas fa-heart-broken"></i>
+                    เจ็บตรงไหน?</button>
+                <button class="quick-btn" onclick="processSentence('ปวดตรงไหน')"><i class="fas fa-head-side-virus"></i>
+                    ปวดตรงไหนไหม?</button>
+                <button class="quick-btn" onclick="processSentence('กินข้าวยัง')"><i class="fas fa-utensils"></i>
+                    กินข้าวยัง?</button>
+                <button class="quick-btn" onclick="processSentence('กินยา')"><i class="fas fa-pills"></i>
+                    กินยายัง?</button>
+                <button class="quick-btn" onclick="processSentence('ขอดูยา')"><i class="fas fa-prescription-bottle"></i>
+                    ขอดูยา</button>
+                <button class="quick-btn" onclick="processSentence('ดีขึ้น')"><i class="fas fa-thumbs-up"></i>
+                    ดีขึ้นไหม?</button>
+                <button class="quick-btn" onclick="processSentence('ชื่ออะไร')"><i class="fas fa-thumbs-up"></i>
+                    ชื่ออะไรครับ</button>
+                <button class="quick-btn" onclick="processSentence('ช้าลง')"><i class="fas fa-thumbs-up"></i>
+                    ทำช้าลงได้ไหม?</button>
+            </div>
+
+            <div class="input-area">
+                <input type="text" id="doctorInput" placeholder="พิมพ์คำถาม..." onkeydown="checkEnter(event)">
+                <button id="sendBtn" onclick="sendText()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+            <button id="micBtn" onclick="toggleSpeech()"><i class="fas fa-microphone"></i></button>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'patient';
+        let cameraStarted = false;
+        let useFrontCamera = true;
+        let cameraObj = null;
+        let recognition;
+        let isListening = false;
+
+        // 📚 1. คลังคำศัพท์
+        // ✅ อัปเดต Path ให้ตรงกับไฟล์ในโฟลเดอร์ client
+        const signData = {
+            "สวัสดี": { img: "https://media.tenor.com/images/3a6933f7f896b02553754215d2a21156/tenor.gif", label: "สวัสดีครับ/ค่ะ" },
+
+            // 👉 ไฟล์วิดีโอ (อ้างอิงจาก path ใน Replit)
+            "เจ็บ": { img: "Hurt.mp4", label: "เจ็บตรงไหนครับ?" },
+            "ปวด": { img: "Ache.mp4", label: "ปวดตรงไหนครับ?" },
+
+            // แนะนำให้ rename ไฟล์ Medicine?.mp4 เป็น Medicine.mp4 ใน Replit เพื่อความชัวร์
+            "กินยา": { img: "Medicine.mp4", label: "ทานยาหรือยัง?" },
+            "ขอดูยา": { img: "drugpls.mp4", label: "ขอดูยาหน่อยครับ" },
+
+            "กินข้าวยัง": { img: "Eat.mp4", label: "ทานข้าวหรือยัง?" },
+            "กินข้าว": { img: "Eat.mp4", label: "ทานข้าวหรือยัง?" },
+
+            "นอน": { img: "https://media.tenor.com/images/b2111559863260715309657252655556/tenor.gif", label: "นอนหลับดีไหม?" },
+            "ดีขึ้น": { img: "good.mp4", label: "อาการดีขึ้นไหม?" },
+            "ชื่ออะไร": { img: "Name.mp4", label: "ชื่ออะไรครับ?" },
+            "ช้าลง": { img: "Slow.mp4", label: "ช้าลงหน่อย" },
+            "ปวดหัว": { img: "https://via.placeholder.com/250?text=Headache", label: "ปวดหัวไหม?" },
+
+            // ใส่เครื่องหมายลูกน้ำครบถ้วน
+            "ขอบคุณ": { img: "https://media.tenor.com/images/a3928827727101869877114777553313/tenor.gif", label: "ขอบคุณครับ" }
+        };
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('btn-patient').className = mode === 'patient' ? 'mode-btn active' : 'mode-btn';
+            document.getElementById('btn-doctor').className = mode === 'doctor' ? 'mode-btn active' : 'mode-btn';
+            document.getElementById('patient-view').style.display = mode === 'patient' ? 'flex' : 'none';
+            document.getElementById('doctor-view').style.display = mode === 'doctor' ? 'flex' : 'none';
+            document.getElementById('btn-switch-cam').style.display = mode === 'patient' ? 'flex' : 'none';
+        }
+
+        function switchCamera() {
+            useFrontCamera = !useFrontCamera;
+            if (cameraStarted) {
+                const video = document.getElementById('input_video');
+                if (video.srcObject) video.srcObject.getTracks().forEach(track => track.stop());
+                startCameraApp(true);
+            }
+        }
+
+        function checkEnter(event) { if (event.key === "Enter") sendText(); }
+        function sendText() {
+            const input = document.getElementById('doctorInput');
+            const text = input.value.trim();
+            if (text) { processSentence(text); input.value = ""; }
+        }
+
+        function initSpeech() {
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SR) return alert("ไม่รองรับเสียง");
+            recognition = new SR();
+            recognition.lang = 'th-TH';
+            recognition.onstart = () => { isListening = true; document.getElementById('micBtn').classList.add('listening'); document.getElementById('recognized-text').innerText = "กำลังฟัง..."; };
+            recognition.onend = () => { isListening = false; document.getElementById('micBtn').classList.remove('listening'); };
+            recognition.onresult = (e) => {
+                const txt = e.results[0][0].transcript;
+                processSentence(txt);
+            };
+        }
+        function toggleSpeech() { if (!recognition) initSpeech(); if (isListening) recognition.stop(); else recognition.start(); }
+
+        async function processSentence(text) {
+            const curWord = document.getElementById('recognized-text');
+            const imgEl = document.getElementById('sign-image');
+            const vidEl = document.getElementById('sign-video');
+            const ph = document.getElementById('sign-placeholder');
+
+            imgEl.style.display = 'none'; vidEl.style.display = 'none'; vidEl.pause();
+
+            let found = false;
+            for (let key in signData) {
+                if (text.includes(key)) {
+                    const item = signData[key];
+                    curWord.innerText = item.label;
+                    found = true;
+
+                    // ตรวจสอบชนิดไฟล์ (Video vs Image)
+                    const isVideo = item.img.toLowerCase().endsWith(".mp4") ||
+                        item.img.toLowerCase().endsWith(".webm") ||
+                        item.img.toLowerCase().endsWith(".mov");
+
+                    if (isVideo) {
+                        vidEl.src = item.img;
+                        vidEl.style.display = 'block';
+                        try {
+                            // พยายามเล่นอัตโนมัติ
+                            await vidEl.play();
+                        } catch (e) {
+                            console.log("Auto-play error:", e);
+                            // ถ้า Safari บล็อกเสียง ให้ปิดเสียงแล้วเล่น
+                            vidEl.muted = true;
+                            vidEl.play();
+                        }
+                    } else {
+                        imgEl.src = item.img;
+                        imgEl.style.display = 'block';
+                    }
+                    break;
+                }
+            }
+
+            if (!found) {
+                curWord.innerText = `"${text}" (ไม่มีในระบบ)`;
+                ph.style.display = 'block';
+            } else {
+                ph.style.display = 'none';
+            }
+        }
+
+        function startCameraApp(restart = false) {
+            if (cameraStarted && !restart) return;
+            document.getElementById('startAppBtn').style.display = 'none';
+            const video = document.getElementById('input_video');
+            const canvas = document.getElementById('output_canvas');
+            const ctx = canvas.getContext('2d');
+
+            function detectPatientAnswer(lm) {
+                let fingers = [false, false, false, false, false];
+                if (lm[4].x < lm[3].x) fingers[0] = true;
+                if (lm[8].y < lm[6].y) fingers[1] = true;
+                if (lm[12].y < lm[10].y) fingers[2] = true;
+                if (lm[16].y < lm[14].y) fingers[3] = true;
+                if (lm[20].y < lm[18].y) fingers[4] = true;
+
+                let total = fingers.filter(Boolean).length;
+                document.getElementById('debug-text').innerText = `นิ้ว: ${fingers.map(f => f ? 1 : 0).join('')}`;
+
+                let status = "...", sub = "...", color = "#ccc";
+
+                if (total == 0 || (total == 1 && fingers[0])) {
+                    status = "🔴 เจ็บมาก / ปวด"; sub = "แจ้งอาการเจ็บ"; color = "#dc3545";
+                }
+                else if (!fingers[0] && fingers[1] && !fingers[2] && !fingers[3] && !fingers[4]) {
+                    status = "🤕 ปวดหัว"; sub = "ปวดศีรษะ/เวียนหัว"; color = "#fd7e14";
+                }
+                else if (!fingers[0] && fingers[1] && fingers[2] && !fingers[3] && !fingers[4]) {
+                    status = "🚻 ท้องเสีย / ห้องน้ำ"; sub = "ต้องการขับถ่าย"; color = "#6f42c1";
+                }
+                else if (fingers[0] && !fingers[1] && !fingers[2] && !fingers[3] && !fingers[4]) {
+                    status = "👍 อาการดีขึ้น"; sub = "รู้สึกสบายตัว"; color = "#007bff";
+                }
+                else if (!fingers[0] && !fingers[1] && !fingers[2] && !fingers[3] && fingers[4]) {
+                    status = "💊 ขอน้ำ / ยา"; sub = "ต้องการดื่มน้ำ/กินยา"; color = "#17a2b8";
+                }
+                else if (total == 5) {
+                    status = "✋ ไม่เจ็บ / ปกติ"; sub = "อาการปกติ"; color = "#28a745";
+                }
+
+                if (status !== "...") {
+                    document.getElementById('translation-text').innerText = status;
+                    document.getElementById('helper-text').innerText = sub;
+                    document.querySelector('.result-box').style.borderLeftColor = color;
+                } else {
+                    document.getElementById('translation-text').innerText = "...";
+                    document.querySelector('.result-box').style.borderLeftColor = "#ccc";
+                }
+            }
+
+            const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
+            hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6 });
+
+            hands.onResults(results => {
+                canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+                ctx.save(); ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (useFrontCamera) canvas.style.transform = "scaleX(-1)"; else canvas.style.transform = "scaleX(1)";
+
+                const vR = results.image.width / results.image.height;
+                const sR = canvas.width / canvas.height;
+                let dw, dh, dx, dy;
+                if (sR > vR) { dw = canvas.width; dh = canvas.width / vR; dx = 0; dy = (canvas.height - dh) / 2; }
+                else { dh = canvas.height; dw = canvas.height * vR; dx = (canvas.width - dw) / 2; dy = 0; }
+                ctx.drawImage(results.image, dx, dy, dw, dh);
+
+                if (results.multiHandLandmarks.length > 0) {
+                    const lm = results.multiHandLandmarks[0];
+                    drawConnectors(ctx, lm, HAND_CONNECTIONS, { color: '#00ccff', lineWidth: 3 });
+                    drawLandmarks(ctx, lm, { color: 'white', lineWidth: 2, radius: 4 });
+                    detectPatientAnswer(lm);
+                }
+                ctx.restore();
+            });
+
+            cameraObj = new Camera(video, {
+                onFrame: async () => { await hands.send({ image: video }); },
+                width: 1280, height: 720, facingMode: useFrontCamera ? "user" : "environment"
+            });
+            cameraObj.start().then(() => cameraStarted = true);
+        }
+    </script>
+</body>
+
+</html>
