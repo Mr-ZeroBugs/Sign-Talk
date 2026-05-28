@@ -2,22 +2,22 @@
     "version": 2,
     "builds": [
         {
-            "src": "api/index.ts",
+            "src": "server/index.ts",
             "use": "@vercel/node"
         }
     ],
     "rewrites": [
         {
             "source": "/api/(.*)",
-            "destination": "api/index.ts"
+            "destination": "server/index.ts"
         },
         {
             "source": "/ws/(.*)",
-            "destination": "api/index.ts"
+            "destination": "server/index.ts"
         },
         {
             "source": "/(.*)",
-            "destination": "api/index.ts"
+            "destination": "server/index.ts"
         }
     ]
 }

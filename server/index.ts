@@ -99,4 +99,9 @@ export const appSetup = (async () => {
   }
 })();
 
-export default app;
+const handler = async (req: any, res: any) => {
+  await appSetup;
+  return app(req, res);
+};
+
+export default handler;
