@@ -60,7 +60,8 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
+// Export a promise that resolves when the app is fully setup
+export const appSetup = (async () => {
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
@@ -76,9 +77,6 @@ app.use((req, res, next) => {
     return res.status(status).json({ message });
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);
   } else {
@@ -87,7 +85,7 @@ app.use((req, res, next) => {
   }
 
   // ONLY listen if we are not in a serverless environment (like Vercel)
-  if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+  if (!process.env.VERCEL && process.env.NODE_ENV !== "test") {
     const port = parseInt(process.env.PORT || "5001", 10);
     httpServer.listen(
       {
