@@ -201,109 +201,111 @@ export default function Translate() {
                 </button>
             </div>
 
-            <div className="absolute inset-x-0 bottom-0 z-20 px-3 pb-3 pt-8 md:px-5 md:pb-5">
+            <div className="absolute inset-x-0 bottom-0 z-20 p-2 md:p-5">
                 <div className="mx-auto max-w-7xl">
-                    <div className="grid items-end gap-3 xl:grid-cols-[minmax(0,1fr)_280px]">
-                        <div className="rounded-[28px] border border-white/10 bg-black/24 p-4 text-white shadow-[0_24px_64px_-38px_rgba(0,0,0,0.92)] backdrop-blur-xl md:p-5">
+                    <div className="grid items-end gap-2.5 lg:grid-cols-[1fr_300px]">
+                        {/* Main Translation Card */}
+                        <div className="rounded-[24px] border border-white/10 bg-black/32 p-3.5 text-white shadow-[0_24px_64px_-32px_rgba(0,0,0,0.95)] backdrop-blur-2xl md:p-5">
                             <AnimatePresence mode="wait">
                                 {(translatedText || hearingResponse) ? (
                                     <motion.div
                                         key={`${translatedText}-${hearingResponse}`}
-                                        initial={{ opacity: 0, y: 18 }}
+                                        initial={{ opacity: 0, y: 12 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 8 }}
-                                        className="space-y-4"
+                                        exit={{ opacity: 0, y: 6 }}
+                                        className="space-y-3 md:space-y-4"
                                     >
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div>
-                                                <p className="text-[11px] font-black uppercase tracking-[0.32em] text-orange-300">คำแปลล่าสุด</p>
-                                                <p className="mt-2 text-2xl font-black leading-tight md:text-4xl">{translatedText || "..."}</p>
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300/90">คำแปลล่าสุด</p>
+                                                <p className="mt-1.5 truncate text-xl font-black leading-tight md:text-4xl">
+                                                    {translatedText || "..."}
+                                                </p>
                                             </div>
                                             <button
                                                 type="button"
                                                 onClick={replayLatestTranslation}
-                                                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-orange-400/18 text-orange-100 transition hover:bg-orange-400/26"
+                                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-400/20 text-orange-100 transition hover:bg-orange-400/32 md:h-12 md:w-12 md:rounded-2xl"
                                             >
-                                                <Volume2 className="h-4 w-4" />
+                                                <Volume2 className="h-4 w-4 md:h-5 md:w-5" />
                                             </button>
                                         </div>
 
                                         {hearingResponse && (
-                                            <div className="border-t border-white/10 pt-4">
-                                                <p className="text-[11px] font-black uppercase tracking-[0.32em] text-sky-300">เสียงตอบกลับล่าสุด</p>
-                                                <p className="mt-2 text-base font-bold leading-relaxed text-white/90 md:text-xl">{hearingResponse}</p>
+                                            <div className="border-t border-white/8 pt-3">
+                                                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-sky-300/90">เสียงตอบกลับ</p>
+                                                <p className="mt-1 line-clamp-2 text-sm font-bold leading-relaxed text-white/80 md:text-lg">{hearingResponse}</p>
                                             </div>
                                         )}
                                     </motion.div>
                                 ) : (
-                                    <div className="space-y-3">
-                                        <div>
-                                            <p className="text-[11px] font-black uppercase tracking-[0.32em] text-orange-300">พร้อมแปล</p>
-                                            <p className="mt-2 max-w-3xl text-lg font-bold leading-relaxed text-white/88 md:text-2xl">
-                                                เริ่มอัดแล้วทำภาษามือหน้ากล้อง จากนั้นกดหยุดเพื่อให้ระบบสร้างคำแปล และกดไมค์เพื่อเก็บข้อความตอบกลับจากอีกฝั่ง
-                                            </p>
-                                        </div>
+                                    <div className="space-y-1.5">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300/90">พร้อมแปล</p>
+                                        <p className="max-w-2xl text-xs font-bold leading-relaxed text-white/70 md:text-xl">
+                                            อัดภาษามือหน้ากล้อง และกดไมค์เพื่อฟังเสียงตอบกลับ
+                                        </p>
                                     </div>
                                 )}
                             </AnimatePresence>
 
-                            <div className="mt-5 flex flex-wrap items-center gap-3">
+                            <div className="mt-4 flex flex-wrap items-center gap-2 md:mt-5 md:gap-3">
                                 <button
                                     type="button"
                                     disabled={isLoadingModel || isTranslating}
                                     onClick={handleToggleRecording}
                                     className={cn(
-                                        "inline-flex h-14 min-w-[210px] items-center justify-center rounded-[22px] px-6 text-base font-black text-white transition-all",
+                                        "inline-flex h-12 flex-1 items-center justify-center rounded-[18px] px-5 text-sm font-black text-white transition-all md:h-14 md:min-w-[210px] md:rounded-[22px] md:text-base",
                                         isRecording ? "bg-red-500 hover:bg-red-600" : "bg-white text-slate-950 hover:bg-orange-50",
                                         (isLoadingModel || isTranslating) && "cursor-not-allowed opacity-70",
                                     )}
                                 >
-                                    {isRecording ? "หยุดอัด" : isTranslating ? <Loader2 className="h-6 w-6 animate-spin" /> : "เริ่มอัดและแปล"}
+                                    {isRecording ? "หยุดอัด" : isTranslating ? <Loader2 className="h-5 w-5 animate-spin md:h-6 md:w-6" /> : "เริ่มอัดและแปล"}
                                 </button>
 
                                 <button
                                     type="button"
                                     onClick={toggleHearingSpeech}
                                     className={cn(
-                                        "inline-flex h-14 items-center gap-3 rounded-[22px] border px-4 text-xs font-black uppercase tracking-[0.18em] text-white backdrop-blur-xl transition-all",
-                                        isHearingListening ? "border-red-300 bg-red-500/90" : "border-white/15 bg-white/10 hover:bg-white/15",
+                                        "inline-flex h-12 items-center gap-2.5 rounded-[18px] border px-4 text-[10px] font-black uppercase tracking-[0.15em] text-white backdrop-blur-xl transition-all md:h-14 md:rounded-[22px] md:px-5 md:text-xs",
+                                        isHearingListening ? "border-red-300 bg-red-500/90" : "border-white/12 bg-white/5 hover:bg-white/12",
                                     )}
                                 >
-                                    {isHearingListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                                    {isHearingListening ? "หยุดฟัง" : "ไมค์ตอบกลับ"}
+                                    {isHearingListening ? <MicOff className="h-4 w-4 md:h-5 md:w-5" /> : <Mic className="h-4 w-4 md:h-5 md:w-5" />}
+                                    <span className="hidden sm:inline">{isHearingListening ? "หยุดฟัง" : "ไมค์ตอบกลับ"}</span>
                                 </button>
                             </div>
                         </div>
 
-                        <div className="rounded-[28px] border border-white/10 bg-black/18 p-3.5 text-white shadow-[0_24px_64px_-38px_rgba(0,0,0,0.92)] backdrop-blur-xl md:p-4">
-                            <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-3">
+                        {/* History Card (Smaller and more transparent on mobile) */}
+                        <div className="hidden rounded-[24px] border border-white/8 bg-black/16 p-3.5 text-white shadow-[0_24px_64px_-32px_rgba(0,0,0,0.95)] backdrop-blur-xl lg:block">
+                            <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-2.5">
                                 <div>
-                                    <p className="text-[11px] font-black uppercase tracking-[0.3em] text-white/50">History</p>
-                                    <h2 className="mt-1 text-base font-black text-white">บทสนทนา</h2>
+                                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">History</p>
+                                    <h2 className="mt-0.5 text-sm font-black text-white">บทสนทนา</h2>
                                 </div>
-                                <div className="rounded-full bg-white/10 px-3 py-1 text-xs font-black text-white/70">
+                                <div className="rounded-full bg-white/8 px-2 py-0.5 text-[10px] font-black text-white/50">
                                     {messages.length}
                                 </div>
                             </div>
 
-                            <div className="mt-3 flex max-h-[22vh] min-h-[130px] flex-col gap-2.5 overflow-y-auto pr-1">
+                            <div className="mt-3 flex max-h-[160px] flex-col gap-2 overflow-y-auto pr-1 scrollbar-hide">
                                 {messages.length === 0 ? (
-                                    <div className="flex min-h-[130px] items-center justify-center rounded-[22px] border border-dashed border-white/10 bg-white/5 px-4 text-center text-xs font-semibold leading-relaxed text-white/45">
-                                        คำแปลและเสียงตอบกลับจะมาแสดงที่นี่
+                                    <div className="flex min-h-[80px] items-center justify-center rounded-[18px] border border-dashed border-white/8 bg-white/4 px-4 text-center text-[10px] font-semibold leading-relaxed text-white/30">
+                                        ประวัติจะมาแสดงที่นี่
                                     </div>
                                 ) : (
                                     messages.slice().reverse().map((message) => (
                                         <div
                                             key={message.id}
                                             className={cn(
-                                                "rounded-[18px] px-3 py-2.5",
-                                                message.speaker === "signer" ? "bg-orange-400/16" : "bg-sky-400/16",
+                                                "rounded-[14px] px-2.5 py-1.5",
+                                                message.speaker === "signer" ? "bg-orange-400/12" : "bg-sky-400/12",
                                             )}
                                         >
-                                            <p className={cn("text-[10px] font-black uppercase tracking-[0.28em]", message.speaker === "signer" ? "text-orange-200" : "text-sky-200")}>
+                                            <p className={cn("text-[8px] font-black uppercase tracking-[0.2em]", message.speaker === "signer" ? "text-orange-200/80" : "text-sky-200/80")}>
                                                 {message.speaker === "signer" ? "Signer" : "Speaker"}
                                             </p>
-                                            <p className="mt-1.5 text-xs font-bold leading-relaxed text-white/92">{message.text}</p>
+                                            <p className="mt-1 text-[11px] font-bold leading-snug text-white/80">{message.text}</p>
                                         </div>
                                     ))
                                 )}
